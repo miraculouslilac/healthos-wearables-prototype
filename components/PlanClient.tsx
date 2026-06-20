@@ -13,7 +13,7 @@ type Props = {
 
 const icons: Record<string, string> = { activity: '↗', nutrition: '◌', hydration: '≈', sleep: '☾', stress: '◇', check_in: '✓', medical: '!' }
 const quickActions = ['Я плохо спала', 'Я всё равно хочу тренировку', 'Болит горло', 'Сильно устала', 'Нет времени на план', 'Хочу более мягкий день', 'Хочу силовую', 'Сделай план на неделю']
-const STORAGE = 'healthos-agent-state-v1'
+const STORAGE = 'healthos-agent-state-v2'
 
 export function PlanClient({ days, baseline, interpretation }: Props) {
   const [health, setHealth] = useState({ days, baseline, interpretation })
@@ -57,8 +57,10 @@ export function PlanClient({ days, baseline, interpretation }: Props) {
     if (!clean) return
     const user: AgentMessage = { id: crypto.randomUUID(), role: 'user', text: clean, createdAt: new Date().toISOString() }
     const result = adaptPlanWithAgent(clean, plan, health.days, health.baseline)
-    setPreviousPlan(plan)
-    setPlan(result.plan)
+    if (result.message.planUpdated) {
+      setPreviousPlan(plan)
+      setPlan(result.plan)
+    }
     setMessages(current => [...current.slice(-5), user, result.message])
     setInput('')
     setSaved(false)
@@ -72,25 +74,8 @@ export function PlanClient({ days, baseline, interpretation }: Props) {
       <h1 className="page-title">{plan.title}</h1>
       <p className="lead">Это не жёсткое расписание. Напиши, как ты себя чувствуешь или что изменилось, и HealthOS подстроит день.</p>
 
-      {plan.safetyNote && <section className="section"><div className="card safety-card"><strong>Сначала безопасность</strong><p>{plan.safetyNote}</p></div></section>}
-
       <section className="section">
-        <div className="section-head"><h2 className="section-title">Сегодня</h2><span className="section-note">{plan.today.length} действий</span></div>
-        <div className="plan-list">
-          {plan.today.map(entry => (
-            <div className={`plan-item ${entry.changed ? 'changed' : ''}`} key={entry.id}>
-              <div className="plan-icon">{icons[entry.area]}</div>
-              <div>
-                <div className="plan-item-top"><h3>{entry.title}</h3>{entry.changed && <span className="updated-badge">изменено</span>}</div>
-                <p>{entry.description}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section className="section">
-        <div className="section-head"><h2 className="section-title">Спросить HealthOS</h2><span className="section-note">план изменится сразу</span></div>
+        <div className="section-head"><h2 className="section-title">Спросить HealthOS</h2><span className="section-note">можно писать своими словами</span></div>
         <div className="card agent-card">
           <div className="agent-messages">
             {!messages.length && <div className="agent-welcome">Расскажи, что изменилось. Например: «Я плохо себя чувствую, убери тренировку» или «Хочу сегодня пробежать 5 км».</div>}
@@ -114,6 +99,23 @@ export function PlanClient({ days, baseline, interpretation }: Props) {
             <button disabled={!previousPlan} onClick={() => { if (previousPlan) { setPlan(previousPlan); setPreviousPlan(null) } }}>Вернуть прежний план</button>
             <button onClick={() => setSaved(true)}>{saved ? 'Сохранено ✓' : 'Сохранить в Health Memory'}</button>
           </div>
+        </div>
+      </section>
+
+      {plan.safetyNote && <section className="section"><div className="card safety-card"><strong>Сначала безопасность</strong><p>{plan.safetyNote}</p></div></section>}
+
+      <section className="section">
+        <div className="section-head"><h2 className="section-title">Сегодня</h2><span className="section-note">{plan.today.length} действий</span></div>
+        <div className="plan-list">
+          {plan.today.map(entry => (
+            <div className={`plan-item ${entry.changed ? 'changed' : ''}`} key={entry.id}>
+              <div className="plan-icon">{icons[entry.area]}</div>
+              <div>
+                <div className="plan-item-top"><h3>{entry.title}</h3>{entry.changed && <span className="updated-badge">изменено</span>}</div>
+                <p>{entry.description}</p>
+              </div>
+            </div>
+          ))}
         </div>
       </section>
 
