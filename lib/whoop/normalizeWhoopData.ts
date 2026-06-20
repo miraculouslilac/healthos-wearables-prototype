@@ -31,14 +31,20 @@ const dayKey = (record: Record<string, unknown>) => {
 
 export function normalizeWhoopData(raw: RawWhoopData): WearableDay[] {
   const days = new Map<string, WearableDay>()
+  const cycleDates = new Map<string, string>()
   const get = (key: string) => {
     if (!days.has(key)) days.set(key, { date: key, workoutCount: 0, workoutStrain: 0, hasWorkout: false })
     return days.get(key)!
+  }
+  const cycleDate = (record: Record<string, unknown>) => {
+    const cycleId = record.cycle_id
+    return cycleId !== undefined ? cycleDates.get(String(cycleId)) : undefined
   }
 
   for (const cycle of raw.cycles?.records ?? []) {
     const key = dayKey(cycle)
     if (!key) continue
+    if (cycle.id !== undefined) cycleDates.set(String(cycle.id), key)
     const day = get(key)
     day.strain = numberAt(cycle, 'score.strain')
     day.averageHeartRate = numberAt(cycle, 'score.average_heart_rate')
@@ -48,7 +54,7 @@ export function normalizeWhoopData(raw: RawWhoopData): WearableDay[] {
   }
 
   for (const recovery of raw.recoveries?.records ?? []) {
-    const key = dayKey(recovery)
+    const key = cycleDate(recovery) ?? dayKey(recovery)
     if (!key) continue
     const day = get(key)
     day.recoveryScore = numberAt(recovery, 'score.recovery_score')
@@ -57,11 +63,16 @@ export function normalizeWhoopData(raw: RawWhoopData): WearableDay[] {
   }
 
   for (const sleep of raw.sleeps?.records ?? []) {
-    const key = dayKey(sleep)
+    // WHOOP sleep starts the evening before the recovery day. Prefer the
+    // associated cycle date; `end` is the safe fallback (wake-up day).
+    const key = cycleDate(sleep) ?? stringAt(sleep, 'end')?.slice(0, 10) ?? dayKey(sleep)
     if (!key || sleep.nap === true) continue
     const day = get(key)
-    const millis = numberAt(sleep, 'score.stage_summary.total_in_bed_time_milli')
-    day.sleepDurationMinutes = millis !== undefined ? Math.round(millis / 60000) : undefined
+    const inBedMillis = numberAt(sleep, 'score.stage_summary.total_in_bed_time_milli')
+    const awakeMillis = numberAt(sleep, 'score.stage_summary.total_awake_time_milli') ?? 0
+    day.sleepDurationMinutes = inBedMillis !== undefined
+      ? Math.max(0, Math.round((inBedMillis - awakeMillis) / 60000))
+      : undefined
     day.sleepPerformancePercent = numberAt(sleep, 'score.sleep_performance_percentage')
   }
 
