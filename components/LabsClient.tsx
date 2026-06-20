@@ -23,7 +23,7 @@ export function LabsClient() {
         <div className="card lab-drop">
           <div style={{ fontSize: 30, marginBottom: 12 }}>⌁</div>
           <strong>PDF, фото или ручной ввод</strong>
-          <p className="lead" style={{ fontSize: 11, marginTop: 8 }}>В прототипе файл обрабатывается как demo без загрузки на сервер.</p>
+          <p className="lead" style={{ fontSize: 14, marginTop: 8 }}>В прототипе файл обрабатывается как demo без загрузки на сервер.</p>
           <div className="lab-actions">
             <label className="button primary">
               Загрузить файл
