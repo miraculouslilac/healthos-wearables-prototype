@@ -34,9 +34,12 @@ export type DailyHealthInterpretation = {
   title: string
   summary: string
   keyFactors: Array<{
+    key: 'sleep' | 'hrv' | 'rhr' | 'strain'
     label: string
     value: string
     explanation: string
+    plainMeaning: string
+    todayAction: string
     direction: 'good' | 'neutral' | 'warning'
   }>
   todayPlan: Array<{
@@ -50,6 +53,30 @@ export type DailyHealthInterpretation = {
     description: string
   }>
   disclaimer: string
+}
+
+export type AdaptivePlanItem = {
+  id: string
+  area: 'activity' | 'nutrition' | 'hydration' | 'sleep' | 'stress' | 'check_in' | 'medical'
+  title: string
+  description: string
+  changed?: boolean
+}
+
+export type AdaptivePlan = {
+  title: string
+  today: AdaptivePlanItem[]
+  week: AdaptivePlanItem[]
+  safetyNote?: string
+  updatedAt?: string
+}
+
+export type AgentMessage = {
+  id: string
+  role: 'user' | 'agent'
+  text: string
+  planUpdated?: boolean
+  createdAt: string
 }
 
 export type RiskProfileZone = {

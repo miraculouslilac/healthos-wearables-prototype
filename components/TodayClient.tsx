@@ -47,10 +47,16 @@ export function TodayClient({ initialData }: { initialData: SyncData }) {
 
       <section className="section">
         <div className="card hero-card">
-          <div className="eyebrow">Recovery · личная динамика</div>
+          <div className="eyebrow">Восстановление · готовность на сегодня</div>
           <div className="hero-number">{Math.round(current?.recoveryScore ?? 0)}</div>
-          <div className="hero-unit">из 100 · ниже твоей средней нормы</div>
-          <p className="hero-summary">Сигнал не в одной цифре, а в сочетании сна, HRV и ночного пульса. Сегодня телу полезнее вернуть ресурс, чем добирать нагрузку.</p>
+          <div className="hero-unit">из 100 · общий показатель готовности к нагрузке</div>
+          <p className="hero-summary">
+            {(current?.recoveryScore ?? 0) < 34
+              ? 'Сегодня тело хуже восстановилось. Лучше не добивать себя тяжёлой тренировкой, а выбрать лёгкое движение, еду и сон.'
+              : (current?.recoveryScore ?? 0) < 67
+                ? 'Организм в рабочем состоянии, но без большого запаса. Можно двигаться и тренироваться, но лучше без максимальной нагрузки.'
+                : 'Организм хорошо восстановился. Сегодня можно планировать более активный день, если самочувствие тоже нормальное.'}
+          </p>
           <div className="button-row">
             <LinkButton href="/plan" primary>Что делать сегодня</LinkButton>
             <button className="button" onClick={() => document.getElementById('factors')?.scrollIntoView({ behavior: 'smooth' })}>Почему так</button>
@@ -59,13 +65,14 @@ export function TodayClient({ initialData }: { initialData: SyncData }) {
       </section>
 
       <section className="section" id="factors">
-        <div className="section-head"><h2 className="section-title">Почему такой вывод</h2><span className="section-note">vs личная норма · 30 дней</span></div>
+        <div className="section-head"><h2 className="section-title">Почему так</h2><span className="section-note">сравнение с твоей нормой за 30 дней</span></div>
         <div className="factor-grid">
-          {data.interpretation.keyFactors.map(factor => (
+          {data.interpretation.keyFactors.slice(0, 4).map(factor => (
             <div className={`factor ${factor.direction}`} key={factor.label}>
               <div className="factor-label">{factor.label}</div>
               <div className="factor-value">{factor.value}</div>
               <div className="factor-copy">{factor.explanation}</div>
+              <div className="factor-meaning">{factor.plainMeaning}</div>
             </div>
           ))}
         </div>
@@ -76,17 +83,26 @@ export function TodayClient({ initialData }: { initialData: SyncData }) {
 
       <section className="section">
         <div className="card impact-card">
-          <div className="eyebrow">Если паттерн сохранится</div>
-          <p>Недосып и низкое восстановление в течение нескольких недель могут повышать вероятность хронической усталости, снижать тренировочную адаптацию и влиять на аппетит.</p>
+          <div className="eyebrow">Если так будет повторяться</div>
+          <p>Если сон и восстановление будут проседать несколько недель подряд, может накопиться усталость. Это не диагноз, но повод посмотреть на режим, стресс и анализы.</p>
         </div>
       </section>
 
       <section className="section">
-        <div className="section-head"><h2 className="section-title">Паттерны недели</h2><LinkButton href="/dashboard">Все зоны →</LinkButton></div>
+        <div className="section-head"><h2 className="section-title">Что повторялось на неделе</h2><LinkButton href="/dashboard">Подробнее →</LinkButton></div>
         <div className="pattern-list">
           <Pattern title="3 дня подряд HRV ниже обычного" copy="Снижение совпало с серией тренировочных дней." />
           <Pattern title="4 ночи сон короче личной нормы" copy="В эти дни ночной пульс в среднем был выше." />
-          <Pattern title="После высокой нагрузки recovery падает" copy="Организму не хватает окна для компенсации нагрузки." />
+          <Pattern title="После высокой нагрузки восстановление падает" copy="Похоже, телу нужно больше времени на отдых." />
+        </div>
+      </section>
+
+      <section className="section">
+        <div className="card agent-preview">
+          <div className="eyebrow">Спросить HealthOS</div>
+          <h2 className="section-title">План можно изменить под самочувствие</h2>
+          <p>Напиши, если плохо спала, заболела, хочешь тренировку или у тебя мало времени. Агент изменит план, а не просто даст совет.</p>
+          <a className="button primary full" href="/plan">Открыть ИИ-агента →</a>
         </div>
       </section>
 

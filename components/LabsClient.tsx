@@ -17,7 +17,14 @@ export function LabsClient() {
     <AppChrome>
       <div className="eyebrow">Lab Match · WHOOP + анализы</div>
       <h1 className="page-title">Связать анализы с данными WHOOP</h1>
-      <p className="lead">HealthOS посмотрит, совпадают ли паттерны сна, восстановления и нагрузки с лабораторными показателями.</p>
+      <p className="lead">WHOOP показывает, как тело ведёт себя каждый день: сон, пульс, восстановление и нагрузку. Анализы помогают проверить, есть ли внутри причины усталости — например, железо, витамин D, щитовидка или сахар.</p>
+
+      <section className="section">
+        <div className="card impact-card">
+          <div className="eyebrow">Зачем соединять данные</div>
+          <p>Вместе они помогают понять не только «я устала», но и почему это может происходить. Например, низкое восстановление может быть связано не только со сном, но и с низким ферритином или витамином D.</p>
+        </div>
+      </section>
 
       <section className="section">
         <div className="card lab-drop">
@@ -68,9 +75,9 @@ export function LabsClient() {
       </>}
 
       {!labs.length && <section className="section"><div className="pattern-list">
-        <div className="pattern"><span className="pattern-dot" /><div><strong>Энергия и восстановление</strong><span>Ферритин, витамин D, B12, гемоглобин и ТТГ.</span></div></div>
-        <div className="pattern"><span className="pattern-dot" /><div><strong>Метаболический контекст</strong><span>Глюкоза, инсулин, HbA1c и липидный профиль.</span></div></div>
-        <div className="pattern"><span className="pattern-dot" /><div><strong>Нагрузочный сигнал</strong><span>CRP, HRV и ночной пульс в одной временной картине.</span></div></div>
+        <div className="pattern"><span className="pattern-dot" /><div><strong>Энергия и усталость</strong><span>Ферритин, гемоглобин, B12, витамин D и ТТГ. Если они снижены, усталость может быть связана не только со сном.</span></div></div>
+        <div className="pattern"><span className="pattern-dot" /><div><strong>Сахар и обмен веществ</strong><span>Глюкоза, инсулин, HOMA-IR, HbA1c, ЛПНП, ЛПВП и триглицериды. WHOOP их не измеряет, но даёт контекст по сну и энергии.</span></div></div>
+        <div className="pattern"><span className="pattern-dot" /><div><strong>Воспаление и восстановление</strong><span>CRP, лейкоциты и СОЭ вместе с ночным пульсом и HRV. Если показатели меняются одновременно, это стоит обсудить с врачом.</span></div></div>
       </div></section>}
     </AppChrome>
   )
