@@ -23,6 +23,7 @@ export function PlanClient({ days, baseline, interpretation }: Props) {
   const [messages, setMessages] = useState<AgentMessage[]>([])
   const [input, setInput] = useState('')
   const [saved, setSaved] = useState(false)
+  const [thinking, setThinking] = useState(false)
 
   useEffect(() => {
     fetch('/api/whoop/sync', { cache: 'no-store' })
@@ -52,21 +53,55 @@ export function PlanClient({ days, baseline, interpretation }: Props) {
     localStorage.setItem(STORAGE, JSON.stringify({ plan, messages }))
   }, [plan, messages])
 
-  const send = (value = input) => {
+  const send = async (value = input) => {
     const clean = value.trim()
-    if (!clean) return
+    if (!clean || thinking) return
     const user: AgentMessage = { id: crypto.randomUUID(), role: 'user', text: clean, createdAt: new Date().toISOString() }
-    const result = adaptPlanWithAgent(clean, plan, health.days, health.baseline)
-    if (result.message.planUpdated) {
-      setPreviousPlan(plan)
-      setPlan(result.plan)
-    }
-    setMessages(current => [...current.slice(-5), user, result.message])
+    const history = messages
+    setMessages(current => [...current.slice(-9), user])
     setInput('')
-    setSaved(false)
+    setThinking(true)
+
+    try {
+      const response = await fetch('/api/healthos/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: clean,
+          history,
+          plan,
+          days: health.days,
+          baseline: health.baseline,
+        }),
+      })
+      if (!response.ok) throw new Error('agent_unavailable')
+      const result = await response.json() as { answer: string; shouldUpdatePlan: boolean; updatedPlan: AdaptivePlan }
+      if (result.shouldUpdatePlan) {
+        setPreviousPlan(plan)
+        setPlan(result.updatedPlan)
+      }
+      const agent: AgentMessage = {
+        id: crypto.randomUUID(),
+        role: 'agent',
+        text: result.answer,
+        planUpdated: result.shouldUpdatePlan,
+        createdAt: new Date().toISOString(),
+      }
+      setMessages(current => [...current.slice(-9), agent])
+    } catch {
+      const result = adaptPlanWithAgent(clean, plan, health.days, health.baseline)
+      if (result.message.planUpdated) {
+        setPreviousPlan(plan)
+        setPlan(result.plan)
+      }
+      setMessages(current => [...current.slice(-9), result.message])
+    } finally {
+      setThinking(false)
+      setSaved(false)
+    }
   }
 
-  const adjust = (kind: 'softer' | 'active') => send(kind === 'softer' ? 'Сделай план мягче' : 'Сделай план активнее')
+  const adjust = (kind: 'softer' | 'active') => void send(kind === 'softer' ? 'Сделай план мягче' : 'Сделай план активнее')
 
   return (
     <AppChrome>
@@ -85,13 +120,14 @@ export function PlanClient({ days, baseline, interpretation }: Props) {
                 {message.planUpdated && <span className="updated-badge">План обновлён</span>}
               </div>
             ))}
+            {thinking && <div className="agent-message agent agent-thinking">HealthOS думает<span>•••</span></div>}
           </div>
           <div className="quick-actions">
-            {quickActions.map(action => <button key={action} onClick={() => send(action)}>{action}</button>)}
+            {quickActions.map(action => <button key={action} disabled={thinking} onClick={() => void send(action)}>{action}</button>)}
           </div>
-          <form className="agent-input" onSubmit={event => { event.preventDefault(); send() }}>
+          <form className="agent-input" onSubmit={event => { event.preventDefault(); void send() }}>
             <input value={input} onChange={event => setInput(event.target.value)} placeholder="Например: хочу сегодня пробежать 5 км, можно?" />
-            <button type="submit" aria-label="Отправить">→</button>
+            <button type="submit" aria-label="Отправить" disabled={thinking}>→</button>
           </form>
           <div className="agent-tools">
             <button onClick={() => adjust('softer')}>Сделать мягче</button>
@@ -130,7 +166,7 @@ export function PlanClient({ days, baseline, interpretation }: Props) {
           ))}
         </div>
       </section>
-      <p className="disclaimer">Это не диагноз и не медицинское назначение. HealthOS помогает заметить изменения и выбрать более разумный план на сегодня.</p>
+      <p className="disclaimer">Сообщения и контекст WHOOP отправляются ИИ-модели для ответа. Это не диагноз и не медицинское назначение.</p>
     </AppChrome>
   )
 }

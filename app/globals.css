@@ -119,8 +119,11 @@ a { color: inherit; text-decoration: none; }
 .agent-message.user { justify-self: end; background: rgba(157,140,255,.16); border-bottom-right-radius: 5px; }
 .agent-message.agent { background: rgba(121,239,210,.08); border: 1px solid rgba(121,239,210,.13); border-bottom-left-radius: 5px; }
 .agent-message .updated-badge { margin-top: 8px; }
+.agent-thinking { color: var(--muted); }
+.agent-thinking span { color: var(--mint); margin-left: 5px; letter-spacing: .12em; }
 .quick-actions { display: flex; gap: 7px; overflow-x: auto; padding: 14px 0 11px; scrollbar-width: none; }
 .quick-actions button, .agent-tools button { white-space: nowrap; border: 1px solid var(--line); background: rgba(255,255,255,.035); color: #c2d2da; border-radius: 999px; padding: 8px 11px; font-size: 12px; cursor: pointer; }
+.quick-actions button:disabled { opacity: .45; }
 .agent-input { display: grid; grid-template-columns: 1fr 44px; gap: 8px; }
 .agent-input input { min-width: 0; min-height: 48px; border: 1px solid var(--line); background: rgba(0,0,0,.18); color: var(--text); border-radius: 15px; padding: 0 14px; outline: none; }
 .agent-input input:focus { border-color: rgba(121,239,210,.5); }
